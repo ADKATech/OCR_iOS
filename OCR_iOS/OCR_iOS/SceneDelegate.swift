@@ -2,7 +2,9 @@
 //  SceneDelegate.swift
 //  OCR_iOS
 //
-//  Created by iSeddiqi Apple on 13/01/2023.
+//  Created by AmrAngry on 13/01/2023.
+//  Copyright © 2020 ADKA Tech. All rights reserved.
+//  www.adkatech.com
 //
 
 import UIKit
