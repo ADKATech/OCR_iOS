@@ -19,6 +19,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var textView: UITextView!
     
     var textRecognitionRequest = VNRecognizeTextRequest(completionHandler: nil)
+    //put that request into an array, and set Vision off in a background queue to scan your image. For example, this uses the default .userInitiated background queue,
     private let textRecognitionWorkQueue = DispatchQueue(label: "MyVisionScannerQueue", qos: .userInitiated, attributes: [], autoreleaseFrequency: .workItem)
 
     override func viewDidLoad() {
@@ -49,12 +50,22 @@ class ViewController: UIViewController {
     }
     
     private func setupVision() {
+        //The Vision framework has built-in support for detecting text in images
+        //Your request will be handed an array of observations that you need to safely typecast as VNRecognizedTextObservation,
+        // then you can loop over each observation to pull out candidates for each one – various possible piece of text that Vision thinks it might have found.
          textRecognitionRequest = VNRecognizeTextRequest { (request, error) in
-             guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
+             guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                 //fatalError("Received invalid observations")
+                 return
+             }
              
              var detectedText = ""
              for observation in observations {
-                 guard let topCandidate = observation.topCandidates(1).first else { return }
+                 guard let topCandidate = observation.topCandidates(1).first else {
+                     print("No candidate")
+                     continue
+                     //return
+                 }
                  print("text \(topCandidate.string) has confidence \(topCandidate.confidence)")
      
                  detectedText += topCandidate.string
@@ -70,8 +81,12 @@ class ViewController: UIViewController {
                  self.textView.flashScrollIndicators()
              }
          }
-
+//by default the recognitionLevel property of your VNRecognizeTextRequest is set to .accurate, which means Vision does its best to figure out the most likely letters in the text
          textRecognitionRequest.recognitionLevel = .accurate
+        //If you wanted to prioritize speed over accuracy – perhaps if you were scanning lots of image, or a live feed, you should change recognitionLevel to .fast, like this:
+        
+       // Second, you can set the customWords property of your request to be an array of unusual strings that your app is likely to come across – words that Vision might decide aren’t likely because it doesn’t recognize them:
+        textRecognitionRequest.customWords = ["Pikachu", "Snorlax", "Charizard"]
      }
     
     private func recognizeTextInImage(_ image: UIImage) {
@@ -81,11 +96,23 @@ class ViewController: UIViewController {
         textRecognitionWorkQueue.async {
             let requestHandler = VNImageRequestHandler(cgImage: cgImage, options: [:])
             do {
+//                put that request into an array,
                 try requestHandler.perform([self.textRecognitionRequest])
             } catch {
                 print(error)
             }
         }
+        
+//        let requests = [request]
+//
+//        DispatchQueue.global(qos: .userInitiated).async {
+//            guard let img = UIImage(named: "testImage")?.cgImage else {
+//                fatalError("Missing image to scan")
+//            }
+//
+//            let handler = VNImageRequestHandler(cgImage: img, options: [:])
+//            try? handler.perform(requests)
+//        }
     }
     
     func compressedImage(_ originalImage: UIImage) -> UIImage {
