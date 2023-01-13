@@ -36,7 +36,7 @@ extension ViewController: VNDocumentCameraViewControllerDelegate {
         for i in 0 ..< scan.pageCount {
             let img = scan.imageOfPage(at: i)
             // ... your code here
-            print("herelo")
+            print("Hello >> Scanned Image #\(i)")
         }
     }
 }
