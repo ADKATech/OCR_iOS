@@ -53,7 +53,7 @@ class ViewController: UIViewController {
         //The Vision framework has built-in support for detecting text in images
         //Your request will be handed an array of observations that you need to safely typecast as VNRecognizedTextObservation,
         // then you can loop over each observation to pull out candidates for each one – various possible piece of text that Vision thinks it might have found.
-         textRecognitionRequest = VNRecognizeTextRequest { (request, error) in
+         textRecognitionRequest = VNRecognizeTextRequest { request, error in
              guard let observations = request.results as? [VNRecognizedTextObservation] else {
                  //fatalError("Received invalid observations")
                  return
@@ -61,13 +61,15 @@ class ViewController: UIViewController {
              
              var detectedText = ""
              for observation in observations {
+                //VNRecognizedTextObservation which itself has a number of candidates for us to investigate.
+                //You can choose to receive up to 10 candidates for each piece of recognized text and they are sorted in decreasing confidence
                  guard let topCandidate = observation.topCandidates(1).first else {
                      print("No candidate")
                      continue
                      //return
                  }
                  print("text \(topCandidate.string) has confidence \(topCandidate.confidence)")
-     
+                 print(topCandidate.boundingBox) //bounding box uses a normalized coordinate system with the origin in the bottom-left so you’ll need to convert it if you want it to play nicely with UIKit.
                  detectedText += topCandidate.string
                  detectedText += "\n"
                  
